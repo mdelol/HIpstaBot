@@ -4,11 +4,10 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.api.objects.Update
-import org.telegram.telegrambots.generics.BotOptions
-import org.telegram.telegrambots.generics.LongPollingBot
+import org.telegram.telegrambots.bots.TelegramLongPollingBot
 
 @Service
-class PollingBotService : LongPollingBot {
+class PollingBotService : TelegramLongPollingBot() {
 
     @Autowired
     private lateinit var messageProcessor : MessageProcessor
@@ -18,22 +17,18 @@ class PollingBotService : LongPollingBot {
 
 
     override fun getBotToken(): String {
-        return tokenValue.orEmpty()
+        return tokenValue
     }
 
     override fun onUpdateReceived(update: Update?) {
-        messageProcessor.process(update)
+        execute(messageProcessor.getResponse(update))
     }
 
     override fun getBotUsername(): String {
-        return "hipstaBot"
-    }
-
-    override fun getOptions(): BotOptions {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return "hipstabot"
     }
 
     override fun clearWebhook() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
     }
 }

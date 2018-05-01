@@ -1,17 +1,18 @@
 package com.home.hipstabot.config
 
+import com.home.hipstabot.service.PollingBotService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.telegram.telegrambots.generics.BotSession
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession
+import org.telegram.telegrambots.TelegramBotsApi
 
 @Configuration
 open class TelegramConfig {
 
     @Bean
-    open fun botSession(): BotSession {
-        return DefaultBotSession()
+    open fun botsApi(botService: PollingBotService): TelegramBotsApi {
+        val telegramBotsApi = TelegramBotsApi()
+        telegramBotsApi.registerBot(botService)
+        return telegramBotsApi
     }
-
 
 }
