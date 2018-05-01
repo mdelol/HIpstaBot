@@ -21,7 +21,16 @@ class PollingBotService : TelegramLongPollingBot() {
     }
 
     override fun onUpdateReceived(update: Update?) {
-        execute(messageProcessor.getResponse(update))
+        var response = messageProcessor.getResponse(update) ?: return
+
+        when (response) {
+            is InlineContainer -> {
+                sendApiMethod(response.aIC)
+            }
+            is SendMessageContainer -> {
+                sendApiMethod(response.sM)
+            }
+        }
     }
 
     override fun getBotUsername(): String {
