@@ -8,6 +8,7 @@ class Media {
     lateinit var link : String
     lateinit var thumbnailUri : String
     lateinit var type : ServiceType
+    var tags : List<String> = ArrayList()
 
     enum class ServiceType {
         APPLE_MUSIC {
