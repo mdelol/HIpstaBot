@@ -4,5 +4,5 @@ interface Matcher {
     fun getMedia(query: String) : Media?
     fun getLink(media: Media) : String?
     fun service() : Media.ServiceType
-    fun matchesUri(Url:String) : Boolean
+    fun matchesUri(uri:String) : Boolean
 }

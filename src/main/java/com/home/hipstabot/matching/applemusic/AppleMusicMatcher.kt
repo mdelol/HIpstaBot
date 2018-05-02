@@ -18,7 +18,7 @@ class AppleMusicMatcher : Matcher {
     override fun getLink(media: Media): String {
         if (media.type == service()) return media.sourceLink
 
-        val params = listOf(media.artist, media.album, media.title).joinToString("+")
+        val params = listOf(media.artist, media.album, media.title).filter { s -> !s.isEmpty() }.joinToString("+")
 
         val request = HttpGet("https://itunes.apple.com/search?limit=1&term=$params")
 

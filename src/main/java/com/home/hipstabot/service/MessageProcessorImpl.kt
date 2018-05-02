@@ -28,7 +28,9 @@ class MessageProcessorImpl : MessageProcessor {
 
             if(availableServices.isEmpty()) return buildEmptyResponse(update)
 
-            val articles = availableServices.map { x -> buildArticleFromResult(x) }
+            val articles = availableServices
+                    .filter { entry -> entry.first.service() != Media.ServiceType.NO_SERVICE }
+                    .map { x -> buildArticleFromResult(x) }
 
             return buildInlineContainer(articles, update)
         }

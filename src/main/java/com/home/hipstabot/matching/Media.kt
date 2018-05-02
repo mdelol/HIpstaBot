@@ -23,6 +23,11 @@ class Media {
             override fun prettyName(): String {
                 return "Yandex Music"
             }
+        },
+        NO_SERVICE {
+            override fun prettyName(): String {
+                return "No service"
+            }
         };
 
         abstract fun prettyName() : String
