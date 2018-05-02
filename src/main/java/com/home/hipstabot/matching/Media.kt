@@ -5,7 +5,8 @@ class Media {
     lateinit var title : String
     lateinit var artist : String
     lateinit var album : String
-    lateinit var sourceLink : String
+    lateinit var link : String
+    lateinit var thumbnailUri : String
     lateinit var type : ServiceType
 
     enum class ServiceType {

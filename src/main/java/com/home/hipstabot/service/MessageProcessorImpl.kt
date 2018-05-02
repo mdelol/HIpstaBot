@@ -3,6 +3,7 @@ package com.home.hipstabot.service
 import com.home.hipstabot.matching.Matcher
 import com.home.hipstabot.matching.Media
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.api.methods.AnswerInlineQuery
 import org.telegram.telegrambots.api.methods.send.SendMessage
@@ -16,6 +17,9 @@ class MessageProcessorImpl : MessageProcessor {
     @Autowired
     private lateinit var matchers: List<Matcher>
 
+    @Value("\${telegram.api.cache.time}")
+    private var cacheTime : Int = 1000
+
     override fun getResponse(update: Update?): Container? {
         if (update == null) return null
 
@@ -24,12 +28,12 @@ class MessageProcessorImpl : MessageProcessor {
 
             val media: Media = getMediaFromRequest(query) ?: return buildEmptyResponse(update)
 
-            val availableServices = matchers.map { x -> Pair(x, x.getLink(media)) }.filter { (_, link) -> link != null }
+            val availableServices: List<Media> = matchers.map { x -> x.getMedia(media) }.filter { x -> x != null }.requireNoNulls()
 
             if(availableServices.isEmpty()) return buildEmptyResponse(update)
 
             val articles = availableServices
-                    .filter { entry -> entry.first.service() != Media.ServiceType.NO_SERVICE }
+                    .filter { entry -> entry.type != Media.ServiceType.NO_SERVICE }
                     .map { x -> buildArticleFromResult(x) }
 
             return buildInlineContainer(articles, update)
@@ -43,21 +47,24 @@ class MessageProcessorImpl : MessageProcessor {
 
         answerInlineQuery.results = articles
         answerInlineQuery.inlineQueryId = update.inlineQuery.id
-        answerInlineQuery.cacheTime = 1000
+        answerInlineQuery.cacheTime = cacheTime
 
         return InlineContainer(answerInlineQuery)
     }
 
-    private fun buildArticleFromResult(x: Pair<Matcher, String?>): InlineQueryResultArticle {
+    private fun buildArticleFromResult(x: Media): InlineQueryResultArticle {
         val result = InlineQueryResultArticle()
 
-        result.id = x.first.service().prettyName()
-        result.title = x.first.service().prettyName()
-        result.url = x.second
-        result.thumbUrl = x.second
+        result.id = x.type.prettyName()
+        result.title = x.type.prettyName()
+        result.url = x.link
+        result.description = "${x.artist} - ${x.title}"
+        result.thumbUrl = x.thumbnailUri
+        result.thumbHeight = 60
+        result.thumbWidth = 60
 
         val content = InputTextMessageContent()
-        content.messageText = x.second
+        content.messageText = x.link
         content.enableWebPagePreview()
         content.enableMarkdown(true)
 
@@ -71,15 +78,14 @@ class MessageProcessorImpl : MessageProcessor {
 
         answerInlineQuery.results = ArrayList()
         answerInlineQuery.inlineQueryId = update.inlineQuery.id
-        answerInlineQuery.cacheTime = 1000
+        answerInlineQuery.cacheTime = cacheTime
 
         return InlineContainer(answerInlineQuery)
     }
 
     private fun getMediaFromRequest(query: String): Media? {
         val filter = matchers.filter { x -> x.matchesUri(query) }.firstOrNull()?: return null
-        val media = filter.getMedia(query)
 
-        return media
+        return filter.getMedia(query)
     }
 }

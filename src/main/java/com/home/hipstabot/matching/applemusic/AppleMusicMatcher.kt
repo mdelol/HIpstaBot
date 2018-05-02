@@ -15,8 +15,8 @@ class AppleMusicMatcher : Matcher {
         return media
     }
 
-    override fun getLink(media: Media): String {
-        if (media.type == service()) return media.sourceLink
+    override fun getMedia(media: Media): Media? {
+        if (media.type == service()) return media
 
         val params = listOf(media.artist, media.album, media.title).filter { s -> !s.isEmpty() }.joinToString("+")
 
@@ -26,7 +26,19 @@ class AppleMusicMatcher : Matcher {
 
         val response = ObjectMapper().readValue(execute.entity.content, ItunesResponse::class.java)
 
-        return response.results.get(0).trackViewUrl
+        val result = response.results.get(0)
+
+        return convertToMedia(result)
+    }
+
+    private fun convertToMedia(result: ItunesEntity): Media {
+        val resultMedia = Media()
+        resultMedia.type = service()
+        resultMedia.title = result.trackName
+        resultMedia.artist = result.artistName
+        resultMedia.link = result.trackViewUrl
+        resultMedia.thumbnailUri = result.artworkUrl60
+        return resultMedia
     }
 
     override fun service(): Media.ServiceType {

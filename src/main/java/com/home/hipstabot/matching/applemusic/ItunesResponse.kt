@@ -10,5 +10,7 @@ class ItunesResponse {
 @JsonIgnoreProperties(ignoreUnknown = true)
 class ItunesEntity {
     lateinit var trackViewUrl : String
-
+    lateinit var artworkUrl60: String
+    lateinit var trackName: String
+    lateinit var artistName: String
 }

@@ -9,15 +9,19 @@ class RawInputMatcher: Matcher {
     override fun getMedia(query: String): Media? {
         val parts = query.split("-")
         val media = Media()
-        media.artist = parts[0]
-        media.title = parts[1]
-        media.sourceLink = ""
-        media.type = Media.ServiceType.NO_SERVICE
-        media.album = ""
-        return media
+        try {
+            media.artist = parts[0]
+            media.title = parts[1]
+            media.link = ""
+            media.type = Media.ServiceType.NO_SERVICE
+            media.album = ""
+            return media
+        } catch (e : Exception) {
+            return null
+        }
     }
 
-    override fun getLink(media: Media): String? {
+    override fun getMedia(media: Media): Media? {
         return null
     }
 
