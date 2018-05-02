@@ -4,34 +4,33 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.home.hipstabot.matching.Matcher
 import com.home.hipstabot.matching.Media
 import org.apache.http.client.methods.HttpGet
+import org.apache.http.client.utils.URIBuilder
 import org.apache.http.impl.client.HttpClientBuilder
 import org.springframework.stereotype.Service
 
 @Service
 class AppleMusicMatcher : Matcher {
-    override fun getMedia(query: String): Media {
-        var media = Media()
 
-        return media
+    override fun getMedia(query: String): Media? {
+        val id = URIBuilder(query).queryParams.find { qp -> qp.name == "i" }?.value
+        val request = HttpGet("https://itunes.apple.com/search?limit=1&term=$id")
+        val execute = HttpClientBuilder.create().build().execute(request)
+        val response = ObjectMapper().readValue(execute.entity.content, ItunesResponse::class.java)
+        return convertToMedia(response.results.firstOrNull())
     }
 
     override fun getMedia(media: Media): Media? {
         if (media.type == service()) return media
-
         val params = listOf(media.artist, media.album, media.title).filter { s -> !s.isEmpty() }.joinToString("+")
-
         val request = HttpGet("https://itunes.apple.com/search?limit=1&term=$params")
-
         val execute = HttpClientBuilder.create().build().execute(request)
-
         val response = ObjectMapper().readValue(execute.entity.content, ItunesResponse::class.java)
-
-        val result = response.results.get(0)
-
+        val result = response.results.firstOrNull()
         return convertToMedia(result)
     }
 
-    private fun convertToMedia(result: ItunesEntity): Media {
+    private fun convertToMedia(result: ItunesEntity?): Media? {
+        if (result == null) return null
         val resultMedia = Media()
         resultMedia.type = service()
         resultMedia.title = result.trackName
