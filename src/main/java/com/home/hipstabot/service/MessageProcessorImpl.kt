@@ -26,30 +26,40 @@ class MessageProcessorImpl : MessageProcessor {
 
             val availableServices = matchers.map { x -> Pair(x, x.getLink(media)) }.filter { (_, link) -> link != null }
 
+            val articles = availableServices.map { x -> buildArticleFromResult(x) }
 
-            val map = availableServices.map { x ->
-                val result = InlineQueryResultArticle()
-                result.id = x.first.service().prettyName()
-                result.title = x.first.service().prettyName()
-                result.url = x.second
-                val content = InputTextMessageContent()
-                content.messageText = x.second
-                content.enableWebPagePreview() // todo try this
-                content.enableMarkdown(true)
-                result.inputMessageContent = content
-
-                result;
-            }
-
-            val answerInlineQuery = AnswerInlineQuery()
-
-            answerInlineQuery.results = map;
-            answerInlineQuery.inlineQueryId = update.inlineQuery.id
-            answerInlineQuery.cacheTime = 1000
-
-            return InlineContainer(answerInlineQuery)
+            return buildInlineContainer(articles, update)
         }
+
         return SendMessageContainer(SendMessage(update.message.chatId, "message mock"))
+    }
+
+    private fun buildInlineContainer(articles: List<InlineQueryResultArticle>, update: Update): InlineContainer {
+        val answerInlineQuery = AnswerInlineQuery()
+
+        answerInlineQuery.results = articles;
+        answerInlineQuery.inlineQueryId = update.inlineQuery.id
+        answerInlineQuery.cacheTime = 1000
+
+        return InlineContainer(answerInlineQuery)
+    }
+
+    private fun buildArticleFromResult(x: Pair<Matcher, String?>): InlineQueryResultArticle {
+        val result = InlineQueryResultArticle()
+
+        result.id = x.first.service().prettyName()
+        result.title = x.first.service().prettyName()
+        result.url = x.second
+        result.thumbUrl = x.second
+
+        val content = InputTextMessageContent()
+        content.messageText = x.second
+        content.enableWebPagePreview()
+        content.enableMarkdown(true)
+
+        result.inputMessageContent = content
+
+        return result
     }
 
     private fun buildEmptyResponse(): Container? {
