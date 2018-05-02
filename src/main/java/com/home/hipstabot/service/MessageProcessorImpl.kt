@@ -22,9 +22,11 @@ class MessageProcessorImpl : MessageProcessor {
         if (update.hasInlineQuery()) {
             val query = update.inlineQuery.query
 
-            val media: Media = getMediaFromRequest(query) ?: return buildEmptyResponse()
+            val media: Media = getMediaFromRequest(query) ?: return buildEmptyResponse(update)
 
             val availableServices = matchers.map { x -> Pair(x, x.getLink(media)) }.filter { (_, link) -> link != null }
+
+            if(availableServices.isEmpty()) return buildEmptyResponse(update)
 
             val articles = availableServices.map { x -> buildArticleFromResult(x) }
 
@@ -37,7 +39,7 @@ class MessageProcessorImpl : MessageProcessor {
     private fun buildInlineContainer(articles: List<InlineQueryResultArticle>, update: Update): InlineContainer {
         val answerInlineQuery = AnswerInlineQuery()
 
-        answerInlineQuery.results = articles;
+        answerInlineQuery.results = articles
         answerInlineQuery.inlineQueryId = update.inlineQuery.id
         answerInlineQuery.cacheTime = 1000
 
@@ -62,12 +64,18 @@ class MessageProcessorImpl : MessageProcessor {
         return result
     }
 
-    private fun buildEmptyResponse(): Container? {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    private fun buildEmptyResponse(update: Update): Container? {
+        val answerInlineQuery = AnswerInlineQuery()
+
+        answerInlineQuery.results = ArrayList()
+        answerInlineQuery.inlineQueryId = update.inlineQuery.id
+        answerInlineQuery.cacheTime = 1000
+
+        return InlineContainer(answerInlineQuery)
     }
 
     private fun getMediaFromRequest(query: String): Media? {
-        val filter = matchers.filter { x -> x.matchesUri(query) }.first()
+        val filter = matchers.filter { x -> x.matchesUri(query) }.firstOrNull()?: return null
         val media = filter.getMedia(query)
 
         return media
