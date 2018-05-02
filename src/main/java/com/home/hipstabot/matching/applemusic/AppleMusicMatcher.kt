@@ -1,32 +1,39 @@
 package com.home.hipstabot.matching.applemusic
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.home.hipstabot.matching.Matcher
 import com.home.hipstabot.matching.Media
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClientBuilder
 import org.springframework.stereotype.Service
 
 @Service
 class AppleMusicMatcher : Matcher {
-    override fun matchesUri(Url: String): Boolean {
-        return true;
-    }
-
     override fun getMedia(query: String): Media {
         var media = Media()
-        media.artist = "Adele"
-        media.album = "25"
-        media.sourceLink = "https://itunes.apple.com/us/album/hello/1051394208?i=1051394215&uo=4"
-        media.title = "Hello"
-        media.type = service()
 
         return media
     }
 
     override fun getLink(media: Media): String {
         if (media.type == service()) return media.sourceLink
-        return ""
+
+        val params = listOf(media.artist, media.album, media.title).joinToString("+")
+
+        val request = HttpGet("https://itunes.apple.com/search?limit=1&term=$params")
+
+        val execute = HttpClientBuilder.create().build().execute(request)
+
+        val response = ObjectMapper().readValue(execute.entity.content, ItunesResponse::class.java)
+
+        return response.results.get(0).trackViewUrl
     }
 
     override fun service(): Media.ServiceType {
         return Media.ServiceType.APPLE_MUSIC
+    }
+
+    override fun matchesUri(uri: String): Boolean {
+        return uri.contains("itunes.apple.com")
     }
 }
