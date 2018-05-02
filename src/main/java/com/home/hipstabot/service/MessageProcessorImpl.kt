@@ -10,6 +10,7 @@ import org.telegram.telegrambots.api.methods.send.SendMessage
 import org.telegram.telegrambots.api.objects.Update
 import org.telegram.telegrambots.api.objects.inlinequery.inputmessagecontent.InputTextMessageContent
 import org.telegram.telegrambots.api.objects.inlinequery.result.InlineQueryResultArticle
+import java.util.stream.Collectors
 
 @Service
 class MessageProcessorImpl : MessageProcessor {
@@ -18,7 +19,7 @@ class MessageProcessorImpl : MessageProcessor {
     private lateinit var matchers: List<Matcher>
 
     @Value("\${telegram.api.cache.time}")
-    private var cacheTime : Int = 1000
+    private var cacheTime: Int = 1000
 
     override fun getResponse(update: Update?): Container? {
         if (update == null) return null
@@ -28,9 +29,9 @@ class MessageProcessorImpl : MessageProcessor {
 
             val media: Media = getMediaFromRequest(query) ?: return buildEmptyResponse(update)
 
-            val availableServices: List<Media> = matchers.map { x -> x.getMedia(media) }.filter { x -> x != null }.requireNoNulls()
+            val availableServices: List<Media> = matchers.parallelStream().map { x -> x.getMedia(media) }.filter { x -> x != null }.collect(Collectors.toList()).requireNoNulls()
 
-            if(availableServices.isEmpty()) return buildEmptyResponse(update)
+            if (availableServices.isEmpty()) return buildEmptyResponse(update)
 
             val articles = availableServices
                     .filter { entry -> entry.type != Media.ServiceType.NO_SERVICE }
@@ -58,7 +59,7 @@ class MessageProcessorImpl : MessageProcessor {
         result.id = x.type.prettyName()
         result.title = x.type.prettyName()
         result.url = x.link
-        result.description = "${x.artist} - ${x.title}"
+        result.description = x.getDisplayName()
         result.thumbUrl = x.thumbnailUri
         result.thumbHeight = 60
         result.thumbWidth = 60
@@ -84,7 +85,7 @@ class MessageProcessorImpl : MessageProcessor {
     }
 
     private fun getMediaFromRequest(query: String): Media? {
-        val filter = matchers.filter { x -> x.matchesUri(query) }.firstOrNull()?: return null
+        val filter = matchers.filter { x -> x.matchesUri(query) }.firstOrNull() ?: return null
 
         return filter.getMedia(query)
     }

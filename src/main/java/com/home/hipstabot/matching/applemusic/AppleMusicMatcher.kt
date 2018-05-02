@@ -21,8 +21,8 @@ class AppleMusicMatcher : Matcher {
 
     override fun getMedia(media: Media): Media? {
         if (media.type == service()) return media
-        val params = media.tags.joinToString("+")
-        val request = HttpGet("https://itunes.apple.com/search?limit=1&term=$params")
+        val params = media.getTags().joinToString("+")
+        val request = HttpGet("https://itunes.apple.com/search?entity=musicTrack&limit=1&term=$params")
         val execute = HttpClientBuilder.create().build().execute(request)
         val response = ObjectMapper().readValue(execute.entity.content, ItunesResponse::class.java)
         val result = response.results.firstOrNull()

@@ -10,7 +10,7 @@ class RawInputMatcher: Matcher {
     override fun getMedia(query: String): Media? {
         val parts = query.split(Pattern.compile("[^а-яА-Я\\w]"))
         val media = Media()
-        media.tags = parts
+        media.setTags(parts)
         media.type = Media.ServiceType.NO_SERVICE
         return media
     }
