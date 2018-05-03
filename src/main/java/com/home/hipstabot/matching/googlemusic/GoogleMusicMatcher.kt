@@ -4,6 +4,7 @@ import com.home.hipstabot.matching.Matcher
 import com.home.hipstabot.matching.Media
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.impl.client.HttpClientBuilder
+import org.jsoup.Jsoup
 import org.springframework.stereotype.Service
 
 @Service
@@ -11,8 +12,7 @@ class GoogleMusicMatcher : Matcher {
     private val GOOGLE_SONG_URL: String = "https://play.google.com/music/m/"
     private val GOOGLE_SEARCH_URL = "https://play.google.com/store/search?c=music&q="
     private val GOOGLE_PAGE_REGEX = Regex("\"song-([\\w]+)\"")
-    private val GOOGLE_RESPONSE_TRACK_INFO_REGEX = Regex("<meta property=\"og:title\" content=\"(.+?)\"/>")
-    private val GOOGLE_RESPONSE_THUMBNAIL_REGEX = Regex("<meta property=\"og:image\" content='(\\w+:/?/?[^\\s]+)?'/>")
+    private val GOOGLE_NOT_FOUND_TITLE = "Listen on Google Play Music"
 
     override fun getMedia(query: String): Media? {
 
@@ -20,18 +20,27 @@ class GoogleMusicMatcher : Matcher {
         val execute = HttpClientBuilder.create().build().execute(request)
         val response = execute.entity.content.bufferedReader().readText()
 
-        val trackInfoMatchResult = GOOGLE_RESPONSE_TRACK_INFO_REGEX.find(response) ?: return null
-        val trackInfo = trackInfoMatchResult.groupValues.last()
+        //todo make a separate parser class
 
-        val thumbnailMatchResult = GOOGLE_RESPONSE_THUMBNAIL_REGEX.find(response) ?: return null
-        val thumbnail = thumbnailMatchResult.groupValues.last()
+        val parsedResponse = Jsoup.parse(response)
+        val metaTags = parsedResponse.head().getElementsByTag("meta")
+        val trackInfoMetaTagValue = metaTags.filter { x -> x.attr("property") != null
+                && x.attr("property").equals("og:title") }.map { x->x.attr("content") }.firstOrNull()
+                    ?: return null
+
+        if(trackInfoMetaTagValue.equals(GOOGLE_NOT_FOUND_TITLE)) return null
+
+        val imageMetaTagValue = metaTags.filter { x -> x.attr("property") != null
+                && x.attr("property").equals("og:image") }.map { x->x.attr("content") }.firstOrNull()
+                ?: return null
+
         val media = Media()
         media.type = service()
-        media.setTags(trackInfo.split("[^а-яА-Я\\w]".toRegex()))
+        media.setTags(trackInfoMetaTagValue.split("[^а-яА-Я\\w]".toRegex()).filter { x->!x.isBlank() })
         media.link = query
-        media.thumbnailUri = thumbnail
-        media.setDisplayName(trackInfo)
-        //todo add thumbnail
+        media.thumbnailUri = imageMetaTagValue
+        media.setDisplayName(trackInfoMetaTagValue)
+
         return media;
     }
 
