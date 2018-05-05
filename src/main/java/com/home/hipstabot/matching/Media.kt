@@ -52,5 +52,7 @@ class Media {
         abstract fun prettyName(): String
     }
 
-
+    override fun toString(): String {
+        return getTags().joinToString("_")
+    }
 }

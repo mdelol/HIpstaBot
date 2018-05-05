@@ -2,13 +2,13 @@ package com.home.hipstabot.matching.rawinput
 
 import com.home.hipstabot.matching.Matcher
 import com.home.hipstabot.matching.Media
+import com.home.hipstabot.util.TagUtil
 import org.springframework.stereotype.Service
-import java.util.regex.Pattern
 
 @Service
 class RawInputMatcher: Matcher {
     override fun getMedia(query: String): Media? {
-        val parts = query.split(Pattern.compile("[^а-яА-Я\\w]"))
+        val parts = TagUtil.splitTags(query)
         val media = Media()
         media.setTags(parts)
         media.type = Media.ServiceType.NO_SERVICE
