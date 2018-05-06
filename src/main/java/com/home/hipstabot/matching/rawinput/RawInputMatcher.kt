@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service
 @Service
 class RawInputMatcher: Matcher {
     override fun getMedia(query: String): Media? {
+        if(query.isBlank()) return null
         val parts = TagUtil.splitTags(query)
         val media = Media()
         media.setTags(parts)

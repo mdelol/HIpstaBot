@@ -1,5 +1,7 @@
 package com.home.hipstabot.matching
 
+import com.home.hipstabot.util.TagUtil
+
 class Media {
 
     lateinit var title: String
@@ -11,7 +13,7 @@ class Media {
     private var tags: List<String> = ArrayList()
 
     fun getTags(): List<String> {
-        if (tags.isEmpty()) return listOf(title, artist).flatMap { x -> x.split("[^а-яА-Я\\w]".toRegex()) }
+        if (tags.isEmpty()) return TagUtil.splitTags(getDisplayName())
         return tags
     }
 

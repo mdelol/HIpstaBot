@@ -30,6 +30,8 @@ class YandexMusicMatcher : Matcher {
         media.link = query
         media.title = yandexTrack.name
         media.artist = yandexTrack.inAlbum.byArtist.name
+        media.thumbnailUri = yandexTrack.inAlbum.image
+        media.type = service()
 
         return media
     }
