@@ -15,7 +15,6 @@ private const val YANDEX_SEARCH_URL = "https://music.yandex.ru/search?type=track
 @Service
 class YandexMusicMatcher : Matcher {
 
-
     override fun getMedia(query: String): Media? {
         val request = HttpGet(query)
         val execute = HttpClientBuilder.create().build().execute(request)
@@ -44,9 +43,9 @@ class YandexMusicMatcher : Matcher {
         val responseContent = execute.entity.content.bufferedReader().readText()
 
         val htmlResponseParser = HtmlResponseParser(responseContent, Document::body, "a", "class", "href")
-        val trackLink = htmlResponseParser.getExtractedValues("share-container").firstOrNull() ?: return null
+        val trackLink = htmlResponseParser.getExtractedValues("d-track__title deco-link deco-link_stronger").firstOrNull() ?: return null
 
-        return getMedia(trackLink)
+        return getMedia("https://music.yandex.ru/$trackLink")
     }
 
     override fun service(): Media.ServiceType {
