@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service
 
 private const val GOOGLE_SONG_URL = "https://play.google.com/music/m/"
 private const val GOOGLE_SEARCH_URL = "https://play.google.com/store/search?c=music&q="
-private const val GOOGLE_PAGE_REGEX_EXP = "\"song-([\\w]+)\""
+private const val GOOGLE_PAGE_REGEX_EXP = "tid\\u003dsong-([\\w]+)\""
 private const val GOOGLE_NOT_FOUND_TITLE = "Listen on Google Play Music"
 private const val TAG = "meta"
 private const val POINTING_ATTRIBUTE_KEY = "property"

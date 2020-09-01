@@ -29,7 +29,10 @@ class MessageProcessorImpl : MessageProcessor {
 
             val media: Media = getMediaFromRequest(query) ?: return buildEmptyResponse(update)
 
-            val availableServices: List<Media> = matchers.parallelStream().map { x -> x.getMedia(media) }.filter { x -> x != null }.collect(Collectors.toList()).requireNoNulls()
+            val availableServices: List<Media> = matchers
+                    .parallelStream()
+                    .map { x -> x.getMedia(media) }
+                    .filter { x -> x != null }.collect(Collectors.toList()).requireNoNulls()
 
             if (availableServices.isEmpty()) return buildEmptyResponse(update)
 
@@ -85,7 +88,7 @@ class MessageProcessorImpl : MessageProcessor {
     }
 
     private fun getMediaFromRequest(query: String): Media? {
-        val filter = matchers.filter { x -> x.matchesUri(query) }.firstOrNull() ?: return null
+        val filter = matchers.firstOrNull { x -> x.matchesUri(query) } ?: return null
 
         return filter.getMedia(query)
     }
