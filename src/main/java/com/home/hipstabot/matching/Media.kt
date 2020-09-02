@@ -45,6 +45,11 @@ class Media {
                 return "Yandex Music"
             }
         },
+        SPOTIFY_MUSIC {
+            override fun prettyName(): String {
+                return "Spotify Music"
+            }
+        },
         NO_SERVICE {
             override fun prettyName(): String {
                 return "No service"

@@ -2,6 +2,7 @@ package com.home.hipstabot.matching.applemusic
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 class ItunesResponse {
     var resultCount : Int = 0
     lateinit var results : List<ItunesEntity>
