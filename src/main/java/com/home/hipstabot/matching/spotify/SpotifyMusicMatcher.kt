@@ -2,8 +2,12 @@ package com.home.hipstabot.matching.spotify
 
 import com.home.hipstabot.matching.Matcher
 import com.home.hipstabot.matching.Media
+import com.home.hipstabot.util.HtmlResponseParser
 import com.wrapper.spotify.SpotifyApi
 import com.wrapper.spotify.enums.ModelObjectType
+import org.apache.http.client.methods.HttpGet
+import org.apache.http.impl.client.HttpClientBuilder
+import org.jsoup.nodes.Document
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.net.URI
@@ -23,16 +27,23 @@ class SpotifyMusicMatcher : Matcher {
     private var timer = Timer()
 
     override fun getMedia(query: String): Media? {
-        val request = getApi().searchItem(query, ModelObjectType.TRACK.type).limit(1).build()
-        val result = request.execute()
-        val tracks = result.tracks
+
+        val request = HttpGet(query)
+        val execute = HttpClientBuilder.create().build().execute(request)
+        val response = execute.entity.content.bufferedReader().readText()
+
+        val htmlResponseParser = HtmlResponseParser(response, Document::head, "meta", "property", "content")
+        val song = htmlResponseParser.extractElements("twitter:title").firstOrNull() ?: return null
+        val artist = htmlResponseParser.extractElements("twitter:audio:artist_name").firstOrNull() ?: return null
+        val image = htmlResponseParser.extractElements("twitter:image").firstOrNull() ?: return null
+
         val media = Media()
-        val firstFound = tracks.items.first()
-        media.link = firstFound.externalUrls.get("spotify")
-        media.title = firstFound.name
-        media.artist = firstFound.artists.first().name
-        media.thumbnailUri = firstFound.album.images.first().url
+        media.link = query
+        media.title = song.attr("content")
+        media.artist = artist.attr("content")
+        media.thumbnailUri = image.attr("content")
         media.type = service()
+
         return media
     }
 
