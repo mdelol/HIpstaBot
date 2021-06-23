@@ -27,6 +27,8 @@ class RawInputMatcher: Matcher {
     override fun matchesUri(uri: String): Boolean {
         return !(uri.contains("itunes.apple.com") ||
                 uri.contains("music.google.com") ||
-                uri.contains("music.yandex.ru"))
+                uri.contains("music.yandex.ru") ||
+                uri.contains("spotify.com")
+                )
     }
 }
